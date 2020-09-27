@@ -18,8 +18,7 @@ import csv
 window = tk.Tk()
 window.title("Attendance MS")
 playsound('Welcome-to-face-recognition-system.mp3')
-
-path = 'C:\\Users\\Admin-PC\\Desktop\\Face-Recognition-Based-Attendance-System\\Project\\blue.png'
+path = 'blue.png'
 img = ImageTk.PhotoImage(Image.open(path))
 panel = tk.Label(window, image = img)
 panel.pack(side = "bottom", fill = "both", expand = "yes")
@@ -34,9 +33,6 @@ lbl = tk.Label(window, text="Attendance Tracker",width=22  ,height=1  ,fg="white
 lbl.place(x=0, y=75)
 lbl = tk.Label(window, text="______________________",width=22  ,height=1  ,fg="#1477b5"  ,bg="#1d2126" ,font=('times', 10, ' bold ')) 
 lbl.place(x=0, y=295)
-
-# lbl = tk.Label(window, text="Facial Recognition",width=13  ,height=1  ,fg="white"  ,bg="black" ,font=('times', 13, ' bold ')) 
-# lbl.place(x=10, y=15)
 
 message = tk.Label(window, text=" " ,bg="#1a7eb0"  ,fg="white"  ,width=72  ,height=24,font=('times', 10, 'italic bold')) 
 message.place(x=175, y=17)
@@ -92,7 +88,6 @@ def is_number(s):
  
     return False
 
-
 def TakeImages(): 
     Id=(txt.get())
     name=(txt2.get())
@@ -135,8 +130,6 @@ def TakeImages():
             res = "Enter Numeric Id"
             message.configure(text= res)
 
-
-
 def TrainImages():
     recognizer = cv2.face_LBPHFaceRecognizer.create()
     harcascadePath = "haarcascade_frontalface_default.xml"
@@ -170,8 +163,6 @@ def getImagesAndLabels(path):
         Ids.append(Id)        
     return faces,Ids
 
-
-
 def TrackImages():
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read("TrainingImageLabel\Trainner.yml")
@@ -188,9 +179,7 @@ def TrackImages():
         faces=faceCascade.detectMultiScale(gray, 1.2,5)    
         for(x,y,w,h) in faces:
             cv2.rectangle(im,(x,y),(x+w,y+h),(225,0,0),2)
-            Id, conf = recognizer.predict(gray[y:y+h,x:x+w])  
-
-            #if confidence is higher, images are less similar  
+            Id, conf = recognizer.predict(gray[y:y+h,x:x+w])    
             if(conf < 50):
                 ts = time.time()      
                 date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
@@ -204,9 +193,7 @@ def TrackImages():
                 tt=str(Id)  
             if(conf > 75):
                 noOfFile=len(os.listdir("ImagesUnknown"))+1
-                cv2.imwrite("ImagesUnknown\Image"+str(noOfFile) + ".jpg", im[y:y+h,x:x+w])
-
-            # To write text on image on screen            
+                cv2.imwrite("ImagesUnknown\Image"+str(noOfFile) + ".jpg", im[y:y+h,x:x+w])            
             cv2.putText(im,str(tt),(x,y+h), font, 1,(255,255,255),2)        
         attendance=attendance.drop_duplicates(subset=['Id'],keep='first')    
         cv2.imshow('Facial Recognition',im) 
@@ -216,42 +203,47 @@ def TrackImages():
     date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
     timeStamp = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
     Hour,Minute,Second=timeStamp.split(":")
-    # fileName="Attendance\Attendance_"+date+"_"+Hour+"-"+Minute+"-"+Second+".csv"
+    #fileName="Attendance\Attendance_"+date+"_"+Hour+"-"+Minute+"-"+Second+".csv"
     fileName="Attendance\Attendance_"+date+".csv"
-    attendance.to_csv(fileName,index=False)
-    res = "Attendance Updated"
+    f= open(fileName,'w')
+    writer=csv.writer(f)
+    writer.writerow(attendance)
+    f.close()
+
+    with open(fileName,'a+',newline='') as csvFile:
+        writer=csv.writer(csvFile)
+        writer.writerow(pd.DataFrame(columns=[Id,aa,date,timeStamp]))
+         #   if row[0]==Id:
+          #      break
+           # writer.writerow(pd.DataFrame(columns=[Id,aa,date,timeStamp]))
+        #for row in attendance:
+            #writer.writerow(row)
+    #attendance.to_csv(fileName,index=False)
+    res="Attendance Updated"
     message.configure(text= res)
     playsound('Thank-you-Your-attendance-updated.mp3')
     cam.release()
     cv2.destroyAllWindows()
-    #print(attendance)
     res=attendance
     message2.configure(text= res)
 
-
 def getReport():
-
-    path = r'C:\Users\Admin-PC\Desktop\Face-Recognition-Based-Attendance-System\Project\Attendance'
+    path = r'C:\Users\Saurabh\Documents\Shreya\Project1\Attendance'
     files = os.listdir(path)
-
     xls_files = []
     today = datetime.date.today()
     week_ago = today - datetime.timedelta(days = 7)
-
     for f in files:
         if f[-3:] == "csv":
             date = datetime.datetime.strptime(f[11:21], '%Y-%m-%d')
             if(date.date() > week_ago and date.date() <= today):
                 xls_files.append(f)
-
-    #print(xls_files)
     l = []
     l1 = []
-    path1 = r'C:\Users\Admin-PC\Desktop\Face-Recognition-Based-Attendance-System\Project\StudentDetails\StudentDetails.csv'
+    path1 = r'C:\Users\Saurabh\Documents\Shreya\Project1\StudentDetails\StudentDetails.csv'
     details = pd.read_csv(path1)
     l = details['Id']
     d = { i : 0 for i in l }
-
     for f in xls_files:
         df = pd.read_csv(path + '\\' + f)
         l1 = df['Id']
@@ -259,32 +251,20 @@ def getReport():
             for j in l1:
                 if i==j:
                     d[i] += 1
-
-
     l1 = d.values()
     perc = map(lambda x: (x/5)*100, l1)
     absent = map(lambda x: 5-x, l1)
-
     ts = time.time()  
     date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
-
-
-    res = list(zip(l, details['Name'], l1, absent, perc))
-
-            
+    res = list(zip(l, details['Name'], l1, absent, perc))            
     with open('Report\Report_'+date+'.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Id", "Name", "No. of days present in the week","No. of days absent in the week", "Percentage Attendance"])
+        writer.writerow(["Id", "Name", "No. of days present","No. of days absent", "Percentage Attendance"])
         writer.writerows(res)
     file.close()
-    
     res = "Weekly report generated"
     message.configure(text= res)
     playsound('Weekly-report-generated.mp3')
-
-
-
-
 
 clearButton = tk.Button(window, text="-", command=clear  ,fg="white"  ,bg="midnight blue"  ,width=3  ,height=1 ,activebackground = "Red" ,font=('times', 10, ' bold '))
 clearButton.place(x=595, y=195)
@@ -294,9 +274,8 @@ takeImg = tk.Button(window, text="Register", command=TakeImages  ,fg="white"  ,b
 takeImg.place(x=705, y=153)
 trainImg = tk.Button(window, text="Add Student to Database", command=TrainImages  ,fg="white"  ,bg="#1a7eb0"  ,width=29  ,height=5, activebackground = "gold" ,font=('times', 12, ' bold '))
 trainImg.place(x=705, y=289)
-trainImg = tk.Button(window, text="Download Weekly Report", command=getReport  ,fg="white"  ,bg="#1a7eb0"  ,width=29  ,height=5, activebackground = "gold" ,font=('times', 12, ' bold '))
+trainImg = tk.Button(window, text="Generate Weekly Report", command=getReport  ,fg="white"  ,bg="#1a7eb0"  ,width=29  ,height=5, activebackground = "gold" ,font=('times', 12, ' bold '))
 trainImg.place(x=705, y=425)
 trackImg = tk.Button(window, text="Mark Attendance", command=TrackImages  ,fg="white"  ,bg="#1a7eb0"  ,width=29  ,height=5, activebackground = "lime" ,font=('times', 12, ' bold '))
 trackImg.place(x=705, y=17)
-
 window.mainloop()
